@@ -7,9 +7,11 @@ import android.graphics.Color
 import androidx.fragment.app.Fragment
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.annotation.RequiresPermission
 
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -38,7 +40,8 @@ class MapsFragment : Fragment() {
     private lateinit var polyline: Polyline
 
     @SuppressLint("MissingPermission")
-    private val callback = OnMapReadyCallback { googleMap -> gMap = googleMap
+    private val callback = OnMapReadyCallback { googleMap ->
+        gMap = googleMap
         /**
          * Manipulates the map once available.
          * This callback is triggered when the map is ready to be used.
@@ -55,6 +58,10 @@ class MapsFragment : Fragment() {
         initMapSettings()
         addMarkersOnMap()
         addShapes()
+        setOnMarkerClickListener()
+        setOnMarkerDragClickListener()
+        setOnInfoWindowClickListener()
+        setOnInfoWindowAdapter()
     }
 
     override fun onCreateView(
@@ -92,6 +99,7 @@ class MapsFragment : Fragment() {
                 .snippet("This is Pune!")
                 .zIndex(10.0F)
                 .icon(bitmapImage as BitmapDescriptor?)
+                .draggable(true)
         )!!
 
         mumbaiMarker = gMap.addMarker(
@@ -100,6 +108,7 @@ class MapsFragment : Fragment() {
                 .zIndex(10.0F)
                 .rotation(45.0F)
                 .snippet("This is Mumbai!")
+                .draggable(true)
         )!!
     }
 
@@ -178,5 +187,60 @@ class MapsFragment : Fragment() {
                 .width(10.0F)
                 .color(Color.GREEN)
         )
+    }
+
+    fun setOnMarkerClickListener() {
+        gMap.setOnMarkerClickListener(MyMarkerClickListener())
+    }
+
+    inner class MyMarkerClickListener : GoogleMap.OnMarkerClickListener {
+        override fun onMarkerClick(p0: Marker): Boolean {
+            Toast.makeText(requireContext(), "onMarkerClick", Toast.LENGTH_LONG).show()
+            return false
+        }
+    }
+
+    fun setOnMarkerDragClickListener() {
+        gMap.setOnMarkerDragListener(MyMarkerDragClickListener())
+    }
+
+    inner class MyMarkerDragClickListener : GoogleMap.OnMarkerDragListener {
+        override fun onMarkerDrag(p0: Marker) {
+            Log.e("tag", "${p0.position.latitude} -- ${p0.position.longitude}")
+        }
+
+        override fun onMarkerDragEnd(p0: Marker) {
+            Log.e("tag", "${p0.position.latitude} -- ${p0.position.longitude}")
+        }
+
+        override fun onMarkerDragStart(p0: Marker) {
+            Log.e("tag", "${p0.position.latitude} -- ${p0.position.longitude}}")
+        }
+    }
+
+    fun setOnInfoWindowClickListener() {
+        gMap.setOnInfoWindowClickListener(MyInfoWindowClickListener())
+    }
+
+    inner class MyInfoWindowClickListener : GoogleMap.OnInfoWindowClickListener {
+        override fun onInfoWindowClick(p0: Marker) {
+            Log.e("tag", "onInfoWindowClick")
+        }
+    }
+
+    fun setOnInfoWindowAdapter() {
+        gMap.setInfoWindowAdapter(MyInfoWindowAdapter())
+    }
+
+    inner class MyInfoWindowAdapter : GoogleMap.InfoWindowAdapter {
+        override fun getInfoContents(p0: Marker): View? {
+            val infoWindowView = layoutInflater.inflate(R.layout.info_window, null)
+            return infoWindowView
+        }
+
+        override fun getInfoWindow(p0: Marker): View? {
+            Log.e("tag", "${p0.position.latitude} -- ${p0.position.longitude}")
+            return null
+        }
     }
 }
